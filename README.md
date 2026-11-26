@@ -186,12 +186,10 @@ pipeline {
 ## Results
 
 ### Jenkins Stage View: consecutive successful builds
-![Jenkins Stage View]
-<img width="940" height="500" alt="Screenshot 2026-11-26 144822" src="https://github.com/user-attachments/assets/2801fd07-7c68-42f3-9ddd-f025fbfc047d" />
+<img width="940" alt="Jenkins Stage View" src="https://github.com/user-attachments/assets/b6393186-785f-4887-adf1-2fa2a673770d" />
 
 ### Ansible deployment logs: 2 servers configured, 0 failures
-![Ansible Deploy Logs]
-<img width="959" height="489" alt="Screenshot 2026-11-26 144814" src="https://github.com/user-attachments/assets/70abbde0-9751-43f9-a3d3-925f4907d8bd" />
+<img width="940" alt="Ansible Deploy Logs" src="https://github.com/user-attachments/assets/70abbde0-9751-43f9-a3d3-925f4907d8bd" />>
 
 PLAY RECAP
 ec2-13-220-42-189.compute-1.amazonaws.com : ok=6  changed=5  unreachable=0  failed=0
