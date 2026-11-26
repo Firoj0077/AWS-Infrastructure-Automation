@@ -11,12 +11,10 @@ A one-click, fully automated pipeline that provisions AWS EC2 servers with Terra
 - [Key Features](#key-features)
 - [Tech Stack](#tech-stack)
 - [Pipeline Stages](#pipeline-stages)
-- [Repository Structure](#repository-structure)
 - [Setup Guide](#setup-guide)
 - [Jenkinsfile](#jenkinsfile)
 - [Results](#results)
-- [Challenges & Learnings](#challenges--learnings)
-- [Future Improvements](#future-improvements)
+
 
 ---
 ## Architecture
@@ -87,6 +85,130 @@ A one-click, fully automated pipeline that provisions AWS EC2 servers with Terra
 | 5 | **Deploy** | Runs the Ansible playbook against the dynamically discovered servers |
 | — | **post** | Sends an email notification with the build result |
 
+## Setup Guide
 
+STEP-1:	Launch an instance with key-pair, 8080 port and IAM Admin role
+STEP-2:	install terraform and write a terraform code to launch an instance with same key-pair.
+STEP-3: push that code into GitHub. 
+STEP-4: setup Jenkins in our server. 
+STEP-5: create a job in Jenkins (Automate terraform) to launch an instance. 
+STEP-6: install Ansible and its dependencies(python-pip, level, openssl and pip install boto3)
+STEP-7: write a plugin for getting prod server details
+STEP-8: allow all permissions for Ansible configuration on prod servers
+STEP-9: make ssh connection b/w the server through pem file
+STEP-10: write a script to automate the configuration on prod servers.
+
+
+STEP-2:	INSTALL TERRAFORM
+
+yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+ yum install terraform -y
+
+
+STEP-5:
+
+1. Choice parameters
+2. Integrate GitHub repo
+3. Shell:
+	#!/bin/bash
+	set -xe
+
+	cd /var/lib/jenkins/workspace /MyDeployment
+
+	terraform init
+	terraform plan
+	terraform $action --auto-approve
+
+	sleep 20
+
+	if [ $action = "destroy" ]; then
+		exit 0
+	else
+		cd ../Ansible
+		ansible-playbook -i /opt/ansible/inventory/ /var/lib/jenkins/workspace/MyDeployment/ansible/deployment.yml
+	fi
+
+STEP-6,7,8,9:
+amazon-linux-extras install ansible2 -y
+yum install python python-pip python-level openssl -y
+pip install boto3
+vi /etc/ansible/ansible.cfg
+[defaults]
+inventory = /opt/ansible/inventory/aws_ec2.yml
+host_key_checking = False
+[plugins]
+enable_plugins = aws_ec2
+
+Mkdir -p /opt/ansible/inventory
+Vim aws_ec2.yml		
+========================
+---
+plugin: aws_ec2
+regions:
+  - us-east-1
+filters:
+  tag:aws:autoscaling:groupName: web-server-asg
+
+##Jenkins File
+
+pipeline {
+    agent any
+
+    stages {
+        stage("infra-code") {
+            steps {
+                git branch: 'main', url: 'https://github.com/Firoj0077/AWS-Infrastructure-Automation.git'
+            }
+        }
+        stage("init"){
+            steps{
+                sh 'echo -e "yes\n" | terraform init'
+            }
+        }
+        stage("plan"){
+            steps{
+                sh 'terraform plan'
+            }
+        }
+        stage("Action"){
+            steps{
+                sh 'terraform $action --auto-approve'
+            }
+        }
+        stage("Deploy"){
+            steps{
+                sh 'ansible-playbook -i /opt/ansible/inventory/ /var/lib/jenkins/workspace/MyDeployment/ansible/deployment.yml'
+            }
+        }
+    }
+}
+
+## Results
+
+### Jenkins Stage View: consecutive successful builds
+![Jenkins Stage View]
+<img width="940" height="500" alt="Screenshot 2026-11-26 144822" src="https://github.com/user-attachments/assets/2801fd07-7c68-42f3-9ddd-f025fbfc047d" />
+
+### Ansible deployment logs: 2 servers configured, 0 failures
+![Ansible Deploy Logs]
+<img width="959" height="489" alt="Screenshot 2026-11-26 144814" src="https://github.com/user-attachments/assets/70abbde0-9751-43f9-a3d3-925f4907d8bd" />
+
+PLAY RECAP
+ec2-13-220-42-189.compute-1.amazonaws.com : ok=6  changed=5  unreachable=0  failed=0
+ec2-3-83-255-173.compute-1.amazonaws.com  : ok=6  changed=5  unreachable=0  failed=0
+```
+
+**Outcomes**
+- Full pipeline (provision + configure + deploy) completes in **~18 seconds** on average
+- **Multiple consecutive green builds** in Jenkins
+- **2 servers** configured in parallel with **0 failed / 0 unreachable** hosts
+- New servers are picked up automatically through tags, with **no manual inventory edits**
+
+## Author
+
+**Firoj**
+DevOps / Cloud Engineer
+
+If you found this project useful, please give it a ⭐
 
 
