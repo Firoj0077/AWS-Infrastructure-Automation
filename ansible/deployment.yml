@@ -1,32 +1,53 @@
+
 ---
-- hosts: aws_ec2
+- name: Deploy static website on AWS EC2
+  hosts: aws_ec2
   become: yes
+  remote_user: ec2-user
   connection: ssh
-  user: ec2-user
 
   vars:
     ansible_ssh_private_key_file: "/etc/ansible/imp.pem"
-    ansible_ssh_user: "ec2-user"
 
   tasks:
-    - name: install web server
-      yum: name=httpd state=present
 
-    - name: start webserver
-      service: name=httpd state=started
+    - name: Install Apache web server
+      yum:
+        name: httpd
+        state: present
 
-    - name: install git
-      yum: name=git state=present
+    - name: Start and enable Apache
+      service:
+        name: httpd
+        state: started
+        enabled: yes
 
-    - name: Delete existing directory
+    - name: Install Git
+      yum:
+        name: git
+        state: present
+
+    - name: Remove existing website directory
       file:
-        path: /var/www/
+        path: /var/www/html
         state: absent
 
-
-    - name: get the source code from github
+    - name: Clone website source code from GitHub
       git:
         repo: "https://github.com/devops0014/staticsite-docker.git"
-        dest: /var/www/
+        dest: /var/www/html
         update: yes
         version: master
+
+    - name: Set website directory permissions
+      file:
+        path: /var/www/html
+        owner: apache
+        group: apache
+        recurse: yes
+        state: directory
+
+    - name: Restart Apache
+      service:
+        name: httpd
+        state: restarted
