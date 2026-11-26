@@ -50,7 +50,7 @@ A one-click, fully automated pipeline that provisions AWS EC2 servers with Terra
 4. Ansible's `aws_ec2` dynamic inventory plugin discovers the new servers **by tag**, with no hard-coded IPs.
 5. The Ansible playbook connects over SSH and configures the servers (installs packages, pulls the latest source code from GitHub).
 6. Jenkins emails the build result.
-
+---
 ## Key Features
 | Feature | Description |
 
@@ -62,6 +62,7 @@ A one-click, fully automated pipeline that provisions AWS EC2 servers with Terra
 | **Safe teardown** | On `destroy`, the pipeline skips Ansible and exits cleanly |
 | **Notifications** | Email alert after every build with status, job name, build number and URL |
 
+---
 ## Tech Stack
 
 | Category | Tool |
@@ -74,6 +75,7 @@ A one-click, fully automated pipeline that provisions AWS EC2 servers with Terra
 | Scripting | Bash, YAML, HCL, Groovy |
 | Libraries | Python 3, pip, boto3, botocore |
 
+---
 ## Pipeline Stages
 
 | # | Stage | What it does |
@@ -84,6 +86,8 @@ A one-click, fully automated pipeline that provisions AWS EC2 servers with Terra
 | 4 | **Action** | `terraform apply` or `terraform destroy` with `-auto-approve`, based on the build parameter |
 | 5 | **Deploy** | Runs the Ansible playbook against the dynamically discovered servers |
 | — | **post** | Sends an email notification with the build result |
+
+---
 
 ## Setup Guide
 
@@ -149,6 +153,7 @@ regions:
 filters:
   tag:aws:autoscaling:groupName: web-server-asg
 
+---
 ##Jenkins File
 
 pipeline {
@@ -182,6 +187,7 @@ pipeline {
         }
     }
 }
+---
 
 ## Results
 
